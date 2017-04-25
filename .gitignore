@@ -14,3 +14,4 @@ hs_err_pid*
 /eth-propeller-ethj.iml
 /logs/
 /database/
+/target/
