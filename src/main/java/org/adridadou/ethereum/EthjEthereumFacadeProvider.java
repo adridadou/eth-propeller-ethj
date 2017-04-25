@@ -6,6 +6,7 @@ import org.adridadou.ethereum.ethj.EthereumTest;
 import org.adridadou.ethereum.ethj.TestConfig;
 import org.adridadou.ethereum.propeller.CoreEthereumFacadeProvider;
 import org.adridadou.ethereum.propeller.EthereumBackend;
+import org.adridadou.ethereum.propeller.EthereumConfig;
 import org.adridadou.ethereum.propeller.EthereumFacade;
 import org.adridadou.ethereum.propeller.event.EthereumEventHandler;
 import org.adridadou.ethereum.values.config.BlockchainConfig;
@@ -32,7 +33,7 @@ public class EthjEthereumFacadeProvider {
     }
 
     public static EthereumFacade forTest(TestConfig config) {
-        return new Builder(BlockchainConfig.builder()).create(new EthereumTest(config));
+        return new Builder(BlockchainConfig.builder()).create(new EthereumTest(config), new EthereumConfig());
     }
 
 
@@ -52,11 +53,11 @@ public class EthjEthereumFacadeProvider {
             GenericConfig.config = configBuilder.toString();
             EthereumReal ethereum = new EthereumReal(EthereumFactory.createEthereum(GenericConfig.class));
             ethereum.register(new EthereumEventHandler());
-            return create(ethereum);
+            return create(ethereum, new EthereumConfig());
         }
 
-        private EthereumFacade create(EthereumBackend ethereum) {
-            return CoreEthereumFacadeProvider.create(ethereum);
+        private EthereumFacade create(EthereumBackend ethereum, EthereumConfig config) {
+            return CoreEthereumFacadeProvider.create(ethereum, config);
         }
     }
 

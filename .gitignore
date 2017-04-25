@@ -12,3 +12,5 @@
 hs_err_pid*
 /.idea/
 /eth-propeller-ethj.iml
+/logs/
+/database/
