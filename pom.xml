@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.adridadou</groupId>
     <artifactId>eth-propeller-ethj</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -13,8 +12,8 @@
 
     <scm>
         <connection>scm:git:https://github.com/{github-user}/{github-repo}.git</connection>
-        <developerConnection>scm:git:git@github.com:adridadou/eth-contract-api.git</developerConnection>
-        <url>https://github.com/adridadou/eth-contract-api</url>
+        <developerConnection>scm:git:git@github.com:adridadou/eth-propeller-ethj.git</developerConnection>
+        <url>https://github.com/adridadou/eth-propeller-ethj</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -22,7 +21,7 @@
         <repository>
             <id>bintray</id>
             <name>Cubefriendly maven repo</name>
-            <url>https://api.bintray.com/maven/cubefriendly/maven/eth-contract-api</url>
+            <url>https://api.bintray.com/maven/cubefriendly/maven/eth-propeller-ethj</url>
         </repository>
     </distributionManagement>
 
@@ -48,13 +47,13 @@
         <dependency>
             <groupId>org.ethereum</groupId>
             <artifactId>ethereumj-core</artifactId>
-            <version>1.5.0-SNAPSHOT</version>
+            <version>1.5.0-RELEASE</version>
         </dependency>
 
         <dependency>
             <groupId>org.adridadou</groupId>
             <artifactId>eth-propeller-core</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1</version>
         </dependency>
 
         <dependency>
