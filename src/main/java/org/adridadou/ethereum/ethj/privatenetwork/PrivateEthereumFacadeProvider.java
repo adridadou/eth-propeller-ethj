@@ -37,7 +37,7 @@ public class PrivateEthereumFacadeProvider {
     private final Logger log = LoggerFactory.getLogger(PrivateEthereumFacadeProvider.class);
     private final EthAccount mainAccount = AccountProvider.fromSeed("cow");
 
-    public EthereumFacade create(final PrivateNetworkConfig config) {
+    public EthereumFacade create(PrivateNetworkConfig config, EthereumConfig ethereumConfig) {
         final boolean dagCached = new File("cachedDag/mine-dag.dat").exists();
         if (config.isResetPrivateBlockchain()) {
             deleteFolder(new File(config.getDbName()), true);
@@ -70,7 +70,7 @@ public class PrivateEthereumFacadeProvider {
 
         EthereumEventHandler ethereumListener = new EthereumEventHandler();
 
-        final EthereumFacade facade = CoreEthereumFacadeProvider.create(ethereumBackend, new EthereumConfig());
+        final EthereumFacade facade = CoreEthereumFacadeProvider.create(ethereumBackend, ethereumConfig);
 
         //This event does not trigger when you are the miner
         ethereumListener.onReady();
