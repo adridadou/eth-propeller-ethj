@@ -3,6 +3,7 @@ package org.adridadou.propeller.ethj;
 import org.adridadou.ethereum.EthjEthereumFacadeProvider;
 import org.adridadou.ethereum.ethj.TestConfig;
 import org.adridadou.ethereum.ethj.privatenetwork.PrivateEthereumFacadeProvider;
+import org.adridadou.ethereum.propeller.EthereumConfig;
 import org.adridadou.ethereum.propeller.EthereumFacade;
 import org.adridadou.ethereum.propeller.exception.EthereumApiException;
 import org.adridadou.ethereum.propeller.keystore.AccountProvider;
@@ -42,13 +43,13 @@ public class TestnetConnectionTest {
     private EthereumFacade fromRopsten() {
         EthjEthereumFacadeProvider.Builder ethereumProvider = EthjEthereumFacadeProvider.forNetwork(ropsten());
         ethereumProvider.extendConfig().fastSync(true);
-        return ethereumProvider.create();
+        return ethereumProvider.create(EthereumConfig.builder().build());
     }
 
     private EthereumFacade fromPrivateNetwork() {
         return privateNetwork.create(config()
                 .reset(true)
-                .initialBalance(mainAccount, ether(10)));
+                .initialBalance(mainAccount, ether(10)), EthereumConfig.builder().build());
     }
 
     private EthereumFacade fromTest() {

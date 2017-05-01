@@ -33,7 +33,7 @@ public class EthjEthereumFacadeProvider {
     }
 
     public static EthereumFacade forTest(TestConfig config) {
-        return new Builder(BlockchainConfig.builder()).create(new EthereumTest(config), new EthereumConfig());
+        return new Builder(BlockchainConfig.builder()).create(new EthereumTest(config), EthereumConfig.builder().build());
     }
 
 
@@ -49,11 +49,11 @@ public class EthjEthereumFacadeProvider {
             return configBuilder;
         }
 
-        public EthereumFacade create() {
+        public EthereumFacade create(EthereumConfig config) {
             GenericConfig.config = configBuilder.toString();
             EthereumReal ethereum = new EthereumReal(EthereumFactory.createEthereum(GenericConfig.class));
             ethereum.register(new EthereumEventHandler());
-            return create(ethereum, new EthereumConfig());
+            return create(ethereum, config);
         }
 
         private EthereumFacade create(EthereumBackend ethereum, EthereumConfig config) {
