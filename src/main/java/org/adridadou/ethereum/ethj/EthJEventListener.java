@@ -36,9 +36,10 @@ public class EthJEventListener extends EthereumListenerAdapter {
 
     private List<EventInfo> createEventInfoList(List<LogInfo> logs) {
         return logs.stream().map(log -> {
-            EthData eventSignature = EthData.of(log.getTopics().get(0).getData());
+            List<EthData> topics = log.getTopics().stream().map(info -> EthData.of(info.getData())).collect(Collectors.toList());
+            EthData eventSignature = topics.get(0);
             EthData eventArguments = EthData.of(log.getData());
-            return new EventInfo(eventSignature, eventArguments);
+            return new EventInfo(eventSignature, eventArguments, topics.subList(1, topics.size()));
         }).collect(Collectors.toList());
     }
 
