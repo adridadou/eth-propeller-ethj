@@ -12,6 +12,7 @@ import org.ethereum.core.Block;
 import org.ethereum.core.Transaction;
 import org.ethereum.core.TransactionReceipt;
 import org.ethereum.listener.EthereumListenerAdapter;
+import org.ethereum.vm.DataWord;
 import org.ethereum.vm.LogInfo;
 
 import java.util.List;
@@ -31,15 +32,30 @@ public class EthJEventListener extends EthereumListenerAdapter {
     @Override
     public void onBlock(Block block, List<TransactionReceipt> receipts) {
         eventHandler.onBlock(new BlockInfo(block.getNumber(), receipts.stream().map(this::toReceipt).collect(Collectors.toList())));
-        receipts.forEach(tx -> eventHandler.onTransactionExecuted(new TransactionInfo(toReceipt(tx), TransactionStatus.Executed)));
+        receipts.forEach(receipt -> eventHandler.onTransactionExecuted(new TransactionInfo(toReceipt(receipt), TransactionStatus.Executed)));
+    }
+
+    @Override
+    public void onPendingTransactionUpdate(TransactionReceipt txReceipt, PendingTransactionState state, Block block) {
+        switch (state) {
+            case DROPPED:
+                eventHandler.onTransactionDropped(new TransactionInfo(toReceipt(txReceipt), TransactionStatus.Dropped));
+                break;
+            default:
+                break;
+        }
     }
 
     private List<EventInfo> createEventInfoList(List<LogInfo> logs) {
         return logs.stream().map(log -> {
-            List<EthData> topics = log.getTopics().stream().map(info -> EthData.of(info.getData())).collect(Collectors.toList());
-            EthData eventSignature = topics.get(0);
+            List<DataWord> topics = log.getTopics();
+            EthData eventSignature = EthData.of(topics.get(0).getData());
             EthData eventArguments = EthData.of(log.getData());
-            return new EventInfo(eventSignature, eventArguments, topics.subList(1, topics.size()));
+            List<EthData> indexedArguments = topics.subList(1, topics.size()).stream()
+                    .map(dw -> EthData.of(dw.getData()))
+                    .collect(Collectors.toList());
+
+            return new EventInfo(eventSignature, eventArguments, indexedArguments);
         }).collect(Collectors.toList());
     }
 
