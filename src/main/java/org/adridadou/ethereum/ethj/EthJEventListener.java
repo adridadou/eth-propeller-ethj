@@ -37,10 +37,11 @@ public class EthJEventListener extends EthereumListenerAdapter {
         }).collect(Collectors.toList());
     }
 
-    static org.adridadou.ethereum.propeller.values.TransactionReceipt toReceipt(TransactionReceipt transactionReceipt) {
+    static org.adridadou.ethereum.propeller.values.TransactionReceipt toReceipt(TransactionReceipt transactionReceipt, EthHash blockHash) {
         Transaction tx = transactionReceipt.getTransaction();
         return new org.adridadou.ethereum.propeller.values.TransactionReceipt(
                 EthHash.of(tx.getHash()),
+                blockHash,
                 EthAddress.of(tx.getSender()),
                 EthAddress.of(tx.getReceiveAddress()),
                 EthAddress.of(tx.getContractAddress()),
@@ -52,15 +53,17 @@ public class EthJEventListener extends EthereumListenerAdapter {
 
     @Override
     public void onBlock(Block block, List<TransactionReceipt> receipts) {
-        eventHandler.onBlock(new BlockInfo(block.getNumber(), receipts.stream().map(EthJEventListener::toReceipt).collect(Collectors.toList())));
-        receipts.forEach(receipt -> eventHandler.onTransactionExecuted(new TransactionInfo(EthHash.of(receipt.getTransaction().getHash()), toReceipt(receipt), TransactionStatus.Executed)));
+        EthHash blockHash = EthHash.of(block.getHash());
+        eventHandler.onBlock(new BlockInfo(block.getNumber(), receipts.stream().map(receipt -> EthJEventListener.toReceipt(receipt, blockHash)).collect(Collectors.toList())));
+        receipts.forEach(receipt -> eventHandler.onTransactionExecuted(new TransactionInfo(EthHash.of(receipt.getTransaction().getHash()), toReceipt(receipt, blockHash), TransactionStatus.Executed)));
     }
 
     @Override
     public void onPendingTransactionUpdate(TransactionReceipt txReceipt, PendingTransactionState state, Block block) {
+        EthHash blockHash = EthHash.of(block.getHash());
         switch (state) {
             case DROPPED:
-                eventHandler.onTransactionDropped(new TransactionInfo(EthHash.of(txReceipt.getTransaction().getHash()), toReceipt(txReceipt), TransactionStatus.Dropped));
+                eventHandler.onTransactionDropped(new TransactionInfo(EthHash.of(txReceipt.getTransaction().getHash()), toReceipt(txReceipt, blockHash), TransactionStatus.Dropped));
                 break;
             default:
                 break;

@@ -125,8 +125,9 @@ public class EthereumTest implements EthereumBackend {
     @Override
     public TransactionInfo getTransactionInfo(EthHash hash) {
         org.ethereum.core.TransactionInfo info = blockchain.getBlockchain().getTransactionInfo(hash.data);
-        TransactionStatus status = info.isPending() ? TransactionStatus.Pending : EthHash.of(info.getBlockHash()).isEmpty() ? TransactionStatus.Unknown : TransactionStatus.Executed;
-        return new TransactionInfo(hash, EthJEventListener.toReceipt(info.getReceipt()), status);
+        EthHash blockHash = EthHash.of(info.getBlockHash());
+        TransactionStatus status = info.isPending() ? TransactionStatus.Pending : blockHash.isEmpty() ? TransactionStatus.Unknown : TransactionStatus.Executed;
+        return new TransactionInfo(hash, EthJEventListener.toReceipt(info.getReceipt(), blockHash), status);
     }
 
     private ECKey getKey(EthAccount account) {
@@ -134,10 +135,11 @@ public class EthereumTest implements EthereumBackend {
     }
 
     private BlockInfo toBlockInfo(Block block) {
-        return new BlockInfo(block.getNumber(), block.getTransactionsList().stream().map(this::toReceipt).collect(Collectors.toList()));
+        EthHash blockHash = EthHash.of(block.getHash());
+        return new BlockInfo(block.getNumber(), block.getTransactionsList().stream().map(tx -> this.toReceipt(tx, blockHash)).collect(Collectors.toList()));
     }
 
-    private org.adridadou.ethereum.propeller.values.TransactionReceipt toReceipt(Transaction tx) {
-        return new org.adridadou.ethereum.propeller.values.TransactionReceipt(EthHash.of(tx.getHash()), EthAddress.of(tx.getSender()), EthAddress.of(tx.getReceiveAddress()), EthAddress.empty(), "", EthData.empty(), true, Collections.emptyList());
+    private org.adridadou.ethereum.propeller.values.TransactionReceipt toReceipt(Transaction tx, EthHash blockHash) {
+        return new org.adridadou.ethereum.propeller.values.TransactionReceipt(EthHash.of(tx.getHash()), blockHash, EthAddress.of(tx.getSender()), EthAddress.of(tx.getReceiveAddress()), EthAddress.empty(), "", EthData.empty(), true, Collections.emptyList());
     }
 }
