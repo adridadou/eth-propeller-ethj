@@ -13,6 +13,7 @@ import org.ethereum.facade.Ethereum;
 
 import java.math.BigInteger;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.adridadou.ethereum.propeller.values.EthValue.wei;
@@ -46,11 +47,18 @@ public class EthereumReal implements EthereumBackend {
     }
 
     @Override
-    public EthHash submit(EthAccount account, EthAddress address, EthValue value, EthData data, Nonce nonce, GasUsage gasLimit) {
-        Transaction tx = ethereum.createTransaction(nonce.getValue(), getGasPrice().getPrice(), gasLimit.getUsage(), address.address, value.inWei(), data.data);
-        tx.sign(getKey(account));
+    public EthHash submit(TransactionRequest request, Nonce nonce) {
+        Transaction tx = ethereum.createTransaction(nonce.getValue(), getGasPrice().getPrice(), request.getGasLimit().getUsage(), request.getAddress().address, request.getValue().inWei(), request.getData().data);
+        tx.sign(getKey(request.getAccount()));
         ethereum.submitTransaction(tx);
 
+        return EthHash.of(tx.getHash());
+    }
+
+    @Override
+    public EthHash getTransactionHash(TransactionRequest request, Nonce nonce) {
+        Transaction tx = ethereum.createTransaction(nonce.getValue(), getGasPrice().getPrice(), request.getGasLimit().getUsage(), request.getAddress().address, request.getValue().inWei(), request.getData().data);
+        tx.sign(getKey(request.getAccount()));
         return EthHash.of(tx.getHash());
     }
 
@@ -90,11 +98,12 @@ public class EthereumReal implements EthereumBackend {
     }
 
     @Override
-    public TransactionInfo getTransactionInfo(EthHash hash) {
-        org.ethereum.core.TransactionInfo info = ((BlockchainImpl) ethereum.getBlockchain()).getTransactionInfo(hash.data);
-        EthHash blockHash = EthHash.of(info.getBlockHash());
-        TransactionStatus status = info.isPending() ? TransactionStatus.Pending : blockHash.isEmpty() ? TransactionStatus.Unknown : TransactionStatus.Executed;
-        return new TransactionInfo(hash, EthJEventListener.toReceipt(info.getReceipt(), blockHash), status);
+    public Optional<TransactionInfo> getTransactionInfo(EthHash hash) {
+        return Optional.ofNullable(((BlockchainImpl) ethereum.getBlockchain()).getTransactionInfo(hash.data)).map(info -> {
+            EthHash blockHash = EthHash.of(info.getBlockHash());
+            TransactionStatus status = info.isPending() ? TransactionStatus.Pending : blockHash.isEmpty() ? TransactionStatus.Unknown : TransactionStatus.Executed;
+            return new TransactionInfo(hash, EthJEventListener.toReceipt(info.getReceipt(), blockHash), status);
+        });
     }
 
     @Override
