@@ -12,6 +12,7 @@ import org.adridadou.ethereum.propeller.values.EthAccount;
 import org.adridadou.ethereum.propeller.values.EthAddress;
 import org.adridadou.ethereum.propeller.values.Payable;
 import org.adridadou.ethereum.propeller.values.SoliditySourceFile;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -34,6 +35,10 @@ import static org.junit.Assert.*;
  */
 public class TestnetConnectionTest {
     private final PrivateEthereumFacadeProvider privateNetwork = new PrivateEthereumFacadeProvider();
+    /**
+     * used by multiThreadTest()
+     */
+    private boolean somethingDied;
     private EthAccount mainAccount = AccountProvider.fromSeed("cow");
     private EthAddress address;
 
@@ -67,7 +72,6 @@ public class TestnetConnectionTest {
 
     private void testMethodCalls(MyContract2 myContract, EthAddress address, EthereumFacade ethereum) throws Exception {
         assertEquals("", myContract.getI1());
-        System.out.println("*** calling contractSource myMethod");
         Future<Integer> future = myContract.myMethod("this is a test");
         assertEquals(12, future.get().intValue());
         assertEquals("this is a test", myContract.getI1());
@@ -112,6 +116,49 @@ public class TestnetConnectionTest {
         testMethodCalls(myContract, address, ethereum);
 
         assertEquals(mainAccount.getAddress(), myContract.getOwner());
+    }
+
+    @Test
+    @Ignore
+    public void speedAndReliabilityTest() throws Exception {
+        final EthereumFacade ethereum = fromTest();
+
+//        myContract.myMethod("1");
+        for (int i = 0; i < 500; i++) {
+            MyContract2 myContract = publishAndMapContract(ethereum);
+            //System.out.println("call no:" + i);
+            testMethodCalls(myContract, address, ethereum);
+            assertEquals(mainAccount.getAddress(), myContract.getOwner());
+        }
+    }
+
+    @Test
+    @Ignore
+    public void multiThreadTest() throws Exception {
+        somethingDied = false;
+        final EthereumFacade ethereum = fromTest();
+        final int threadCount = 5;
+        Thread[] threads = new Thread[threadCount];
+        for (int i = 0; i < threads.length; i++) {
+            threads[i] = new Thread(() -> {
+                try {
+                    for (int i1 = 0; i1 < 10; i1++) {
+                        MyContract2 myContract = publishAndMapContract(ethereum);
+                        testMethodCalls(myContract, address, ethereum);
+                        assertEquals(mainAccount.getAddress(), myContract.getOwner());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    somethingDied = true;
+                    fail("Something died");
+                }
+            });
+            threads[i].start();
+        } // for
+        for (Thread thread : threads) {
+            thread.join();
+        } // for
+        assertFalse("Something died, see stack trace", somethingDied);
     }
 
     private enum EnumTest {

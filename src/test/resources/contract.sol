@@ -52,7 +52,7 @@ contract myContract2 {
     }
 
     function throwMe() {
-        throw;
+        require(false);
     }
 
     function getInitTime(uint time) constant returns (uint) {
