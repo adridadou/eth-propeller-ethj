@@ -38,7 +38,7 @@ public class TestnetConnectionTest {
     /**
      * used by multiThreadTest()
      */
-    boolean somethingDied;
+    private boolean somethingDied;
     private EthAccount mainAccount = AccountProvider.fromSeed("cow");
     private EthAddress address;
 
@@ -72,7 +72,6 @@ public class TestnetConnectionTest {
 
     private void testMethodCalls(MyContract2 myContract, EthAddress address, EthereumFacade ethereum) throws Exception {
         assertEquals("", myContract.getI1());
-        System.out.println("*** calling contractSource myMethod");
         Future<Integer> future = myContract.myMethod("this is a test");
         assertEquals(12, future.get().intValue());
         assertEquals("this is a test", myContract.getI1());
@@ -120,12 +119,14 @@ public class TestnetConnectionTest {
     }
 
     @Test
+    @Ignore
     public void speedAndReliabilityTest() throws Exception {
         final EthereumFacade ethereum = fromTest();
 
 //        myContract.myMethod("1");
         for (int i = 0; i < 500; i++) {
             MyContract2 myContract = publishAndMapContract(ethereum);
+            //System.out.println("call no:" + i);
             testMethodCalls(myContract, address, ethereum);
             assertEquals(mainAccount.getAddress(), myContract.getOwner());
         }

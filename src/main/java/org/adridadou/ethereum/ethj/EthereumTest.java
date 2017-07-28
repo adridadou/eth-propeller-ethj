@@ -16,7 +16,8 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +29,7 @@ public class EthereumTest implements EthereumBackend {
     private final TestConfig testConfig;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
     private final LocalExecutionService localExecutionService;
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public EthereumTest(TestConfig testConfig) {
         this.blockchain = new StandaloneBlockchain();
@@ -35,12 +37,13 @@ public class EthereumTest implements EthereumBackend {
         blockchain
                 .withGasLimit(testConfig.getGasLimit())
                 .withGasPrice(testConfig.getGasPrice())
+                .withAutoblock(false)
                 .withCurrentTime(testConfig.getInitialTime());
 
         testConfig.getBalances().forEach((key, value) -> blockchain.withAccountBalance(key.getAddress().address, value.inWei()));
 
         localExecutionService = new LocalExecutionService(blockchain.getBlockchain());
-        CompletableFuture.runAsync(() -> {
+        executor.submit(() -> {
             try {
                 while (true) {
                     blockchain.submitTransaction(transactions.take());
@@ -73,7 +76,7 @@ public class EthereumTest implements EthereumBackend {
     public EthHash submit(TransactionRequest request, Nonce nonce) {
         System.out.println("submitting tx with nonce " + nonce.getValue() + " and hash:" + getTransactionHash(request, nonce));
         Transaction tx = createTransaction(request, nonce);
-        this.transactions.add(tx);
+        executor.submit(() -> this.transactions.add(tx));
         return EthHash.of(tx.getHash());
     }
 
