@@ -56,13 +56,6 @@ public class EthereumReal implements EthereumBackend {
     }
 
     @Override
-    public EthHash getTransactionHash(TransactionRequest request, Nonce nonce) {
-        Transaction tx = ethereum.createTransaction(nonce.getValue(), getGasPrice().getPrice(), request.getGasLimit().getUsage(), request.getAddress().address, request.getValue().inWei(), request.getData().data);
-        tx.sign(getKey(request.getAccount()));
-        return EthHash.of(tx.getHash());
-    }
-
-    @Override
     public Nonce getNonce(EthAddress currentAddress) {
         return new Nonce(getRepository().getNonce(currentAddress.address));
     }
