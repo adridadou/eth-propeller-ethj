@@ -80,8 +80,7 @@ public class EthereumTest implements EthereumBackend {
         return EthHash.of(tx.getHash());
     }
 
-    @Override
-    public EthHash getTransactionHash(TransactionRequest request, Nonce nonce) {
+    private EthHash getTransactionHash(TransactionRequest request, Nonce nonce) {
         return EthHash.of(createTransaction(request, nonce).getHash());
     }
 
