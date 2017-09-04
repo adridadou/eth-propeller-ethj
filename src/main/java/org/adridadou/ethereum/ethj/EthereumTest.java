@@ -74,14 +74,9 @@ public class EthereumTest implements EthereumBackend {
 
     @Override
     public EthHash submit(TransactionRequest request, Nonce nonce) {
-        System.out.println("submitting tx with nonce " + nonce.getValue() + " and hash:" + getTransactionHash(request, nonce));
         Transaction tx = createTransaction(request, nonce);
         executor.submit(() -> this.transactions.add(tx));
         return EthHash.of(tx.getHash());
-    }
-
-    private EthHash getTransactionHash(TransactionRequest request, Nonce nonce) {
-        return EthHash.of(createTransaction(request, nonce).getHash());
     }
 
     private Transaction createTransaction(TransactionRequest request, Nonce nonce) {

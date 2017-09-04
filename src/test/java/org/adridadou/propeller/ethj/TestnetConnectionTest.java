@@ -85,7 +85,6 @@ public class TestnetConnectionTest {
         assertEquals(new MyReturnType(true, "hello", 34), myContract.getM());
 
         assertEquals("", myContract.getI2());
-        System.out.println("*** calling contractSource myMethod2 async");
         myContract.myMethod2("async call").get();
 
         myContract.myMethod3("async call").with(ether(150)).get();
