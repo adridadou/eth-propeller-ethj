@@ -118,6 +118,7 @@ public class TestnetConnectionTest {
     }
 
     @Test
+    @Ignore
     public void speedAndReliabilityTest() throws Exception {
         final EthereumFacade ethereum = fromTest();
 
