@@ -32,7 +32,7 @@ public class EthereumReal implements EthereumBackend {
 
     @Override
     public GasPrice getGasPrice() {
-        return new GasPrice(EthValue.wei(ethereum.getGasPrice()));
+        return new GasPrice(wei(ethereum.getGasPrice()));
     }
 
     @Override
