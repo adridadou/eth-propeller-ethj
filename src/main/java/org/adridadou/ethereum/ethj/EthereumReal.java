@@ -11,7 +11,6 @@ import org.ethereum.core.Transaction;
 import org.ethereum.crypto.ECKey;
 import org.ethereum.facade.Ethereum;
 
-import java.math.BigInteger;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,7 +32,7 @@ public class EthereumReal implements EthereumBackend {
 
     @Override
     public GasPrice getGasPrice() {
-        return new GasPrice(BigInteger.valueOf(ethereum.getGasPrice()));
+        return new GasPrice(EthValue.wei(ethereum.getGasPrice()));
     }
 
     @Override
@@ -48,7 +47,7 @@ public class EthereumReal implements EthereumBackend {
 
     @Override
     public EthHash submit(TransactionRequest request, Nonce nonce) {
-        Transaction tx = ethereum.createTransaction(nonce.getValue(), getGasPrice().getPrice(), request.getGasLimit().getUsage(), request.getAddress().address, request.getValue().inWei(), request.getData().data);
+        Transaction tx = ethereum.createTransaction(nonce.getValue(), getGasPrice().getPrice().inWei(), request.getGasLimit().getUsage(), request.getAddress().address, request.getValue().inWei(), request.getData().data);
         tx.sign(getKey(request.getAccount()));
         ethereum.submitTransaction(tx);
 
