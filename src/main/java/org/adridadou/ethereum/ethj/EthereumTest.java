@@ -29,20 +29,19 @@ public class EthereumTest implements EthereumBackend {
     private final TestConfig testConfig;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
     private final LocalExecutionService localExecutionService;
-    private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public EthereumTest(TestConfig testConfig) {
         this.blockchain = new StandaloneBlockchain();
 
         blockchain
                 .withGasLimit(testConfig.getGasLimit())
-                .withGasPrice(testConfig.getGasPrice())
-                .withAutoblock(false)
+                .withGasPrice(testConfig.getGasPrice().getPrice().inWei().longValue())
                 .withCurrentTime(testConfig.getInitialTime());
 
         testConfig.getBalances().forEach((key, value) -> blockchain.withAccountBalance(key.getAddress().address, value.inWei()));
 
         localExecutionService = new LocalExecutionService(blockchain.getBlockchain());
+        ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(() -> {
             try {
                 while (true) {
@@ -59,7 +58,7 @@ public class EthereumTest implements EthereumBackend {
 
     @Override
     public GasPrice getGasPrice() {
-        return new GasPrice(BigInteger.valueOf(testConfig.getGasPrice()));
+        return testConfig.getGasPrice();
     }
 
     @Override
@@ -75,7 +74,7 @@ public class EthereumTest implements EthereumBackend {
     @Override
     public EthHash submit(TransactionRequest request, Nonce nonce) {
         Transaction tx = createTransaction(request, nonce);
-        executor.submit(() -> this.transactions.add(tx));
+        this.transactions.add(tx);
         return EthHash.of(tx.getHash());
     }
 
