@@ -65,13 +65,13 @@ public class EthereumReal implements EthereumBackend {
     }
 
     @Override
-    public BlockInfo getBlock(long blockNumber) {
-        return toBlockInfo(ethereum.getBlockchain().getBlockByNumber(blockNumber));
+    public Optional<BlockInfo> getBlock(long blockNumber) {
+        return Optional.ofNullable(ethereum.getBlockchain().getBlockByNumber(blockNumber)).map(this::toBlockInfo);
     }
 
     @Override
-    public BlockInfo getBlock(EthHash ethHash) {
-        return toBlockInfo(ethereum.getBlockchain().getBlockByHash(ethHash.data));
+    public Optional<BlockInfo> getBlock(EthHash ethHash) {
+        return Optional.ofNullable(ethereum.getBlockchain().getBlockByHash(ethHash.data)).map(this::toBlockInfo);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class EthereumReal implements EthereumBackend {
         return Optional.ofNullable(((BlockchainImpl) ethereum.getBlockchain()).getTransactionInfo(hash.data)).map(info -> {
             EthHash blockHash = EthHash.of(info.getBlockHash());
             TransactionStatus status = info.isPending() ? TransactionStatus.Pending : blockHash.isEmpty() ? TransactionStatus.Unknown : TransactionStatus.Executed;
-            return new TransactionInfo(hash, EthJEventListener.toReceipt(info.getReceipt(), blockHash), status);
+            return new TransactionInfo(hash, EthJEventListener.toReceipt(info.getReceipt(), blockHash), status, blockHash);
         });
     }
 

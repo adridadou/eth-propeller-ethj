@@ -24,7 +24,7 @@ public class EthJEventListener extends EthereumListenerAdapter {
         this.eventHandler = eventHandler;
     }
 
-    private static List<EventData> createEventInfoList(EthHash transactionHash, List<LogInfo> logs) {
+    static List<EventData> createEventInfoList(EthHash transactionHash, List<LogInfo> logs) {
         return logs.stream().map(log -> {
             List<DataWord> topics = log.getTopics();
             EthData eventSignature = EthData.of(topics.get(0).getData());
@@ -55,7 +55,7 @@ public class EthJEventListener extends EthereumListenerAdapter {
     public void onBlock(Block block, List<TransactionReceipt> receipts) {
         EthHash blockHash = EthHash.of(block.getHash());
         eventHandler.onBlock(new BlockInfo(block.getNumber(), receipts.stream().map(receipt -> EthJEventListener.toReceipt(receipt, blockHash)).collect(Collectors.toList())));
-        receipts.forEach(receipt -> eventHandler.onTransactionExecuted(new TransactionInfo(EthHash.of(receipt.getTransaction().getHash()), toReceipt(receipt, blockHash), TransactionStatus.Executed)));
+        receipts.forEach(receipt -> eventHandler.onTransactionExecuted(new TransactionInfo(EthHash.of(receipt.getTransaction().getHash()), toReceipt(receipt, blockHash), TransactionStatus.Executed, EthHash.empty())));
     }
 
     @Override
@@ -63,7 +63,7 @@ public class EthJEventListener extends EthereumListenerAdapter {
         EthHash blockHash = EthHash.of(block.getHash());
         switch (state) {
             case DROPPED:
-                eventHandler.onTransactionDropped(new TransactionInfo(EthHash.of(txReceipt.getTransaction().getHash()), toReceipt(txReceipt, blockHash), TransactionStatus.Dropped));
+                eventHandler.onTransactionDropped(new TransactionInfo(EthHash.of(txReceipt.getTransaction().getHash()), toReceipt(txReceipt, blockHash), TransactionStatus.Dropped, EthHash.empty()));
                 break;
             default:
                 break;
