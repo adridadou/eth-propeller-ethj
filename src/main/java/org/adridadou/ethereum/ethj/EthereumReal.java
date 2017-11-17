@@ -3,6 +3,7 @@ package org.adridadou.ethereum.ethj;
 import org.adridadou.ethereum.propeller.EthereumBackend;
 import org.adridadou.ethereum.propeller.event.BlockInfo;
 import org.adridadou.ethereum.propeller.event.EthereumEventHandler;
+import org.adridadou.ethereum.propeller.solidity.converters.decoders.EthValueDecoder;
 import org.adridadou.ethereum.propeller.values.*;
 import org.ethereum.core.Block;
 import org.ethereum.core.BlockchainImpl;
@@ -24,6 +25,7 @@ import static org.adridadou.ethereum.propeller.values.EthValue.wei;
 public class EthereumReal implements EthereumBackend {
     private final Ethereum ethereum;
     private final LocalExecutionService localExecutionService;
+    private final EthValueDecoder ethValueDecoder = new EthValueDecoder();
 
     public EthereumReal(Ethereum ethereum) {
         this.ethereum = ethereum;
@@ -120,6 +122,6 @@ public class EthereumReal implements EthereumBackend {
     }
 
     private org.adridadou.ethereum.propeller.values.TransactionReceipt toReceipt(Transaction tx, EthHash blockHash) {
-        return new org.adridadou.ethereum.propeller.values.TransactionReceipt(EthHash.of(tx.getHash()), blockHash, EthAddress.of(tx.getSender()), EthAddress.of(tx.getReceiveAddress()), EthAddress.empty(), "", EthData.empty(), true, Collections.emptyList());
+        return new org.adridadou.ethereum.propeller.values.TransactionReceipt(EthHash.of(tx.getHash()), blockHash, EthAddress.of(tx.getSender()), EthAddress.of(tx.getReceiveAddress()), EthAddress.empty(), "", EthData.empty(), true, Collections.emptyList(), ethValueDecoder.decode(0, EthData.of(tx.getValue()), EthValue.class));
     }
 }

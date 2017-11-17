@@ -2,6 +2,7 @@ package org.adridadou.ethereum.ethj;
 
 import org.adridadou.ethereum.propeller.event.BlockInfo;
 import org.adridadou.ethereum.propeller.event.EthereumEventHandler;
+import org.adridadou.ethereum.propeller.solidity.converters.decoders.EthValueDecoder;
 import org.adridadou.ethereum.propeller.values.*;
 import org.ethereum.core.Block;
 import org.ethereum.core.Transaction;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
  */
 public class EthJEventListener extends EthereumListenerAdapter {
     private final EthereumEventHandler eventHandler;
+    private static final EthValueDecoder ethValueDecoder = new EthValueDecoder();
 
     EthJEventListener(EthereumEventHandler eventHandler) {
         this.eventHandler = eventHandler;
@@ -48,7 +50,8 @@ public class EthJEventListener extends EthereumListenerAdapter {
                 transactionReceipt.getError(),
                 EthData.of(transactionReceipt.getExecutionResult()),
                 transactionReceipt.isSuccessful() && transactionReceipt.isValid(),
-                createEventInfoList(EthHash.of(tx.getHash()), transactionReceipt.getLogInfoList()));
+                createEventInfoList(EthHash.of(tx.getHash()), transactionReceipt.getLogInfoList()),
+                ethValueDecoder.decode(0, EthData.of(tx.getValue()), EthValue.class));
     }
 
     @Override
