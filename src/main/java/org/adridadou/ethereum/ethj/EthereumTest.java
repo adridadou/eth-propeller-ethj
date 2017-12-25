@@ -4,6 +4,7 @@ import org.adridadou.ethereum.propeller.EthereumBackend;
 import org.adridadou.ethereum.propeller.event.BlockInfo;
 import org.adridadou.ethereum.propeller.event.EthereumEventHandler;
 import org.adridadou.ethereum.propeller.exception.EthereumApiException;
+import org.adridadou.ethereum.propeller.solidity.converters.decoders.EthValueDecoder;
 import org.adridadou.ethereum.propeller.values.*;
 import org.ethereum.core.Block;
 import org.ethereum.core.Transaction;
@@ -30,6 +31,7 @@ public class EthereumTest implements EthereumBackend {
     private final TestConfig testConfig;
     private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
     private final LocalExecutionService localExecutionService;
+    private final EthValueDecoder ethValueDecoder = new EthValueDecoder();
 
     public EthereumTest(TestConfig testConfig) {
         this.blockchain = new StandaloneBlockchain();
@@ -156,7 +158,8 @@ public class EthereumTest implements EthereumBackend {
                 EthAddress.empty(), "",
                 EthData.empty(),
                 true,
-                EthJEventListener.createEventInfoList(EthHash.of(tx.getHash()), logs));
+                EthJEventListener.createEventInfoList(EthHash.of(tx.getHash()), logs),
+                ethValueDecoder.decode(0, EthData.of(tx.getValue()), EthValue.class));
     }
 }
 
