@@ -42,6 +42,7 @@ public class EthJEventListener extends EthereumListenerAdapter {
 
     static org.adridadou.ethereum.propeller.values.TransactionReceipt toReceipt(TransactionReceipt transactionReceipt, EthHash blockHash) {
         Transaction tx = transactionReceipt.getTransaction();
+        BigInteger txValue = tx.getValue().length > 0 ? new BigInteger(tx.getValue()) : new BigInteger("0");
         return new org.adridadou.ethereum.propeller.values.TransactionReceipt(
                 EthHash.of(tx.getHash()),
                 blockHash,
@@ -52,7 +53,7 @@ public class EthJEventListener extends EthereumListenerAdapter {
                 EthData.of(transactionReceipt.getExecutionResult()),
                 transactionReceipt.isSuccessful() && transactionReceipt.isValid(),
                 createEventInfoList(EthHash.of(tx.getHash()), transactionReceipt.getLogInfoList()),
-                ethValueDecoder.decode(0, EthData.of(new BigInteger(tx.getValue())), EthValue.class));
+                ethValueDecoder.decode(0, EthData.of(txValue), EthValue.class));
     }
 
     @Override
