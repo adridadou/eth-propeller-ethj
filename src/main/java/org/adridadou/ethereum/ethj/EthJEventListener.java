@@ -11,6 +11,7 @@ import org.ethereum.listener.EthereumListenerAdapter;
 import org.ethereum.vm.DataWord;
 import org.ethereum.vm.LogInfo;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,7 +52,7 @@ public class EthJEventListener extends EthereumListenerAdapter {
                 EthData.of(transactionReceipt.getExecutionResult()),
                 transactionReceipt.isSuccessful() && transactionReceipt.isValid(),
                 createEventInfoList(EthHash.of(tx.getHash()), transactionReceipt.getLogInfoList()),
-                ethValueDecoder.decode(0, EthData.of(tx.getValue()), EthValue.class));
+                ethValueDecoder.decode(0, EthData.of(new BigInteger(tx.getValue())), EthValue.class));
     }
 
     @Override
