@@ -2,7 +2,6 @@ package org.adridadou.ethereum.ethj;
 
 import org.adridadou.ethereum.propeller.event.BlockInfo;
 import org.adridadou.ethereum.propeller.event.EthereumEventHandler;
-import org.adridadou.ethereum.propeller.exception.EthereumApiException;
 import org.adridadou.ethereum.propeller.solidity.converters.decoders.EthValueDecoder;
 import org.adridadou.ethereum.propeller.values.*;
 import org.ethereum.core.Block;
