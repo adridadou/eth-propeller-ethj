@@ -4,7 +4,7 @@
 
     <groupId>org.adridadou</groupId>
     <artifactId>eth-propeller-ethj</artifactId>
-    <version>0.24</version>
+    <version>0.25</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -45,9 +45,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.adridadou</groupId>
-            <artifactId>ethereumj</artifactId>
-            <version>1.5.1</version>
+            <groupId>org.ethereum</groupId>
+            <artifactId>ethereumj-core</artifactId>
+            <version>1.7.0-RELEASE</version>
         </dependency>
 
         <dependency>
@@ -59,7 +59,7 @@
         <dependency>
             <groupId>org.adridadou</groupId>
             <artifactId>eth-propeller-core</artifactId>
-            <version>0.24</version>
+            <version>0.25</version>
         </dependency>
 
         <dependency>
