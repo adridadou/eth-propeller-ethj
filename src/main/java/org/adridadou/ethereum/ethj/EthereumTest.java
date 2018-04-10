@@ -91,7 +91,9 @@ public class EthereumTest implements EthereumBackend {
 
     @Override
     public GasUsage estimateGas(final EthAccount account, final EthAddress address, final EthValue value, final EthData data) {
-        return localExecutionService.estimateGas(account, address, value, data);
+        //TODO: works for now but we should make that work again. It looks like constant calls in test env can modify the blockchain state
+        return new GasUsage(BigInteger.valueOf(4_000_000));
+        //return localExecutionService.estimateGas(account, address, value, data);
     }
 
     @Override
