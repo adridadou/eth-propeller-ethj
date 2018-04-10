@@ -47,7 +47,7 @@
         <dependency>
             <groupId>org.ethereum</groupId>
             <artifactId>ethereumj-core</artifactId>
-            <version>1.7.0-RELEASE</version>
+            <version>1.7.2-RELEASE</version>
         </dependency>
 
         <dependency>
@@ -59,7 +59,7 @@
         <dependency>
             <groupId>org.adridadou</groupId>
             <artifactId>eth-propeller-core</artifactId>
-            <version>0.25</version>
+            <version>0.26</version>
         </dependency>
 
         <dependency>
