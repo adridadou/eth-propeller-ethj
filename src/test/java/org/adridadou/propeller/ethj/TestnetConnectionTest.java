@@ -16,7 +16,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
-import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -42,7 +41,7 @@ public class TestnetConnectionTest {
     private EthAccount mainAccount = AccountProvider.fromSeed("cow");
     private EthAddress address;
 
-    public TestnetConnectionTest() throws URISyntaxException {
+    public TestnetConnectionTest() {
     }
 
     private EthereumFacade fromRopsten() {
@@ -108,6 +107,7 @@ public class TestnetConnectionTest {
     }
 
     @Test
+    @Ignore
     public void main_example_how_the_lib_works() throws Exception {
         final EthereumFacade ethereum = fromTest();
         MyContract2 myContract = publishAndMapContract(ethereum);
