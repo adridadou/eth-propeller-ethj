@@ -52,6 +52,7 @@ public class EthJEventListener extends EthereumListenerAdapter {
                 EthAddress.of(tx.getSender()),
                 EthAddress.of(tx.getReceiveAddress()),
                 EthAddress.of(tx.getContractAddress()),
+                EthData.of(tx.getData()),
                 transactionReceipt.getError(),
                 EthData.of(transactionReceipt.getExecutionResult()),
                 transactionReceipt.isSuccessful() && transactionReceipt.isValid(),
