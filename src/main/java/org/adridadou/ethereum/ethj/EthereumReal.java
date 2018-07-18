@@ -122,6 +122,18 @@ public class EthereumReal implements EthereumBackend {
     }
 
     private org.adridadou.ethereum.propeller.values.TransactionReceipt toReceipt(Transaction tx, EthHash blockHash) {
-        return new org.adridadou.ethereum.propeller.values.TransactionReceipt(EthHash.of(tx.getHash()), blockHash, EthAddress.of(tx.getSender()), EthAddress.of(tx.getReceiveAddress()), EthAddress.empty(), "", EthData.empty(), true, Collections.emptyList(), ethValueDecoder.decode(0, EthData.of(tx.getValue()), EthValue.class));
+        return new org.adridadou.ethereum.propeller.values.TransactionReceipt(
+                EthHash.of(tx.getHash()),
+                blockHash,
+                EthAddress.of(tx.getSender()),
+                EthAddress.of(tx.getReceiveAddress()),
+                EthAddress.empty(),
+                EthData.of(tx.getData()),
+                "",
+                EthData.empty(),
+                true,
+                Collections.emptyList(),
+                ethValueDecoder.decode(0, EthData.of(tx.getValue()), EthValue.class)
+        );
     }
 }
