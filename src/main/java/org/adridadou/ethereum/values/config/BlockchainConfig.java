@@ -1,5 +1,8 @@
 package org.adridadou.ethereum.values.config;
 
+import org.adridadou.ethereum.propeller.values.ChainId;
+import org.adridadou.ethereum.propeller.values.config.NodeIp;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
