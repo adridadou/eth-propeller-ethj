@@ -1,5 +1,7 @@
 package org.adridadou.ethereum.ethj;
 
+import org.adridadou.ethereum.propeller.values.ChainId;
+import org.adridadou.ethereum.propeller.values.config.NodeIp;
 import org.adridadou.ethereum.values.config.*;
 
 import static org.adridadou.ethereum.EthjEthereumFacadeProvider.ETHER_CAMP_CHAIN_ID;
