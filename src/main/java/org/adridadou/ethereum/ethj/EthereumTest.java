@@ -1,10 +1,13 @@
 package org.adridadou.ethereum.ethj;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.ReplaySubject;
 import org.adridadou.ethereum.propeller.EthereumBackend;
 import org.adridadou.ethereum.propeller.event.BlockInfo;
 import org.adridadou.ethereum.propeller.event.EthereumEventHandler;
 import org.adridadou.ethereum.propeller.exception.EthereumApiException;
-import org.adridadou.ethereum.propeller.solidity.converters.decoders.EthValueDecoder;
 import org.adridadou.ethereum.propeller.values.*;
 import org.ethereum.core.Block;
 import org.ethereum.core.Transaction;
@@ -12,12 +15,12 @@ import org.ethereum.crypto.ECKey;
 import org.ethereum.util.ByteUtil;
 import org.ethereum.util.blockchain.StandaloneBlockchain;
 import org.ethereum.vm.LogInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -29,9 +32,12 @@ import java.util.stream.Collectors;
 public class EthereumTest implements EthereumBackend {
     private final StandaloneBlockchain blockchain;
     private final TestConfig testConfig;
-    private final BlockingQueue<Transaction> transactions = new ArrayBlockingQueue<>(100);
+    private final ReplaySubject<Transaction> transactionPublisher = ReplaySubject.create(100);
+    private final Flowable<Transaction> transactionObservable = transactionPublisher.toFlowable(BackpressureStrategy.BUFFER);
     private final LocalExecutionService localExecutionService;
-    private final EthValueDecoder ethValueDecoder = new EthValueDecoder();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    private Logger logger = LoggerFactory.getLogger(EthereumTest.class);
 
     public EthereumTest(TestConfig testConfig) {
         this.blockchain = new StandaloneBlockchain();
@@ -44,21 +50,25 @@ public class EthereumTest implements EthereumBackend {
         testConfig.getBalances().forEach((key, value) -> blockchain.withAccountBalance(key.getAddress().address, value.inWei()));
 
         localExecutionService = new LocalExecutionService(blockchain.getBlockchain());
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.submit(() -> {
-            try {
-                while (true) {
-                    Transaction tx = transactions.take();
-                    blockchain.submitTransaction(tx);
-                    blockchain.createBlock();
-                }
-            } catch (Throwable e) {
-                e.printStackTrace();
-                throw new EthereumApiException("error while polling transactions for test env", e);
-            }
-        });
-
+        processTransactions();
         this.testConfig = testConfig;
+    }
+
+    private void processTransactions() {
+        transactionObservable
+                .doOnError(err -> logger.error(err.getMessage(), err))
+                .doOnNext(next -> logger.debug("New transaction to process"))
+                .subscribeOn(Schedulers.from(executor))
+                .subscribe(tx -> executor.submit(() -> process(tx)));
+    }
+
+    private void process(Transaction tx) {
+        try {
+            blockchain.submitTransaction(tx);
+            blockchain.createBlock();
+        } catch (Throwable e) {
+            throw new EthereumApiException("error while polling transactions for test env", e);
+        }
     }
 
     @Override
@@ -79,7 +89,7 @@ public class EthereumTest implements EthereumBackend {
     @Override
     public EthHash submit(TransactionRequest request, Nonce nonce) {
         Transaction tx = createTransaction(request, nonce);
-        this.transactions.add(tx);
+        transactionPublisher.onNext(tx);
         return EthHash.of(tx.getHash());
     }
 
@@ -91,9 +101,7 @@ public class EthereumTest implements EthereumBackend {
 
     @Override
     public GasUsage estimateGas(final EthAccount account, final EthAddress address, final EthValue value, final EthData data) {
-        //TODO: works for now but we should make that work again. It looks like constant calls in test env can modify the blockchain state
-        return new GasUsage(BigInteger.valueOf(4_000_000));
-        //return localExecutionService.estimateGas(account, address, value, data);
+        return new GasUsage(BigInteger.valueOf(testConfig.getGasLimit() - 1));
     }
 
     @Override
@@ -151,6 +159,7 @@ public class EthereumTest implements EthereumBackend {
     }
 
     private TransactionReceipt toReceipt(Transaction tx, EthHash blockHash) {
+        EthValue value = tx.getValue().length == 0 ? EthValue.wei(0) : EthValue.wei(new BigInteger(1, tx.getValue()));
         List<LogInfo> logs = blockchain.getBlockchain().getTransactionInfo(tx.getHash()).getReceipt().getLogInfoList();
         return new TransactionReceipt(
                 EthHash.of(tx.getHash()),
@@ -158,12 +167,10 @@ public class EthereumTest implements EthereumBackend {
                 EthAddress.of(tx.getSender()),
                 EthAddress.of(tx.getReceiveAddress()),
                 EthAddress.empty(),
-                EthData.empty(),
+                EthData.of(tx.getData()),
                 "",
                 EthData.empty(),
                 true,
-                EthJEventListener.createEventInfoList(EthHash.of(tx.getHash()), logs),
-                ethValueDecoder.decode(0, EthData.of(tx.getValue()), EthValue.class));
+                EthJEventListener.createEventInfoList(EthHash.of(tx.getHash()), logs), value);
     }
 }
-
