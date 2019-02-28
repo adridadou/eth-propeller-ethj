@@ -101,7 +101,7 @@ public class EthereumTest implements EthereumBackend {
 
     @Override
     public GasUsage estimateGas(final EthAccount account, final EthAddress address, final EthValue value, final EthData data) {
-        return localExecutionService.estimateGas(account, address, value, data);
+        return new GasUsage(BigInteger.valueOf(testConfig.getGasLimit() - 1));
     }
 
     @Override
