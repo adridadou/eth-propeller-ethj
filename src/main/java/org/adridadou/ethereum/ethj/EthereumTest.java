@@ -9,6 +9,10 @@ import org.adridadou.ethereum.propeller.event.BlockInfo;
 import org.adridadou.ethereum.propeller.event.EthereumEventHandler;
 import org.adridadou.ethereum.propeller.exception.EthereumApiException;
 import org.adridadou.ethereum.propeller.values.*;
+import org.ethereum.config.BlockchainNetConfig;
+import org.ethereum.config.blockchain.DaoNoHFConfig;
+import org.ethereum.config.blockchain.HomesteadConfig;
+import org.ethereum.config.blockchain.PetersburgConfig;
 import org.ethereum.core.Block;
 import org.ethereum.core.Transaction;
 import org.ethereum.crypto.ECKey;
@@ -40,7 +44,7 @@ public class EthereumTest implements EthereumBackend {
     private Logger logger = LoggerFactory.getLogger(EthereumTest.class);
 
     public EthereumTest(TestConfig testConfig) {
-        this.blockchain = new StandaloneBlockchain();
+        this.blockchain = new StandaloneBlockchain().withNetConfig(getBlockchainConfig());
 
         blockchain
                 .withGasLimit(testConfig.getGasLimit())
@@ -52,6 +56,15 @@ public class EthereumTest implements EthereumBackend {
         localExecutionService = new LocalExecutionService(blockchain.getBlockchain());
         processTransactions();
         this.testConfig = testConfig;
+    }
+
+    private BlockchainNetConfig getBlockchainConfig() {
+        return new PetersburgConfig(new DaoNoHFConfig(new HomesteadConfig(new HomesteadConfig.HomesteadConstants() {
+            @Override
+            public BigInteger getMINIMUM_DIFFICULTY() {
+                return BigInteger.ONE;
+            }
+        }), 0));
     }
 
     private void processTransactions() {
