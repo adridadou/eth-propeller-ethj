@@ -8,6 +8,9 @@ import org.adridadou.ethereum.propeller.EthereumBackend;
 import org.adridadou.ethereum.propeller.event.BlockInfo;
 import org.adridadou.ethereum.propeller.event.EthereumEventHandler;
 import org.adridadou.ethereum.propeller.exception.EthereumApiException;
+import org.adridadou.ethereum.propeller.service.CryptoProvider;
+import org.adridadou.ethereum.propeller.service.PropellerCryptoProvider;
+import org.adridadou.ethereum.propeller.solidity.SolidityEvent;
 import org.adridadou.ethereum.propeller.values.*;
 import org.ethereum.config.BlockchainNetConfig;
 import org.ethereum.config.blockchain.DaoNoHFConfig;
@@ -21,8 +24,10 @@ import org.ethereum.util.blockchain.StandaloneBlockchain;
 import org.ethereum.vm.LogInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.web3j.protocol.core.DefaultBlockParameter;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -108,12 +113,12 @@ public class EthereumTest implements EthereumBackend {
 
     private Transaction createTransaction(TransactionRequest request, Nonce nonce) {
         Transaction transaction = new Transaction(ByteUtil.bigIntegerToBytes(nonce.getValue()), ByteUtil.bigIntegerToBytes(BigInteger.ZERO), ByteUtil.bigIntegerToBytes(request.getGasLimit().getUsage()), request.getAddress().address, ByteUtil.bigIntegerToBytes(request.getValue().inWei()), request.getData().data, null);
-        transaction.sign(getKey(request.getAccount()));
+        transaction.sign(getKey(request.getCryptoProvider()));
         return transaction;
     }
 
     @Override
-    public GasUsage estimateGas(final EthAccount account, final EthAddress address, final EthValue value, final EthData data) {
+    public GasUsage estimateGas(final CryptoProvider provider, final EthAddress address, final EthValue value, final EthData data) {
         return new GasUsage(BigInteger.valueOf(testConfig.getGasLimit() - 1));
     }
 
@@ -143,11 +148,48 @@ public class EthereumTest implements EthereumBackend {
     }
 
     @Override
-    public synchronized EthData constantCall(final EthAccount account, final EthAddress address, final EthValue value, final EthData data) {
-        return localExecutionService.executeLocally(account, address, value, data);
+    public synchronized EthData constantCall(final CryptoProvider cryptoProvider, final EthAddress address, final EthValue value, final EthData data) {
+        return localExecutionService.executeLocally(getAccount(cryptoProvider), address, value, data);
     }
 
-    @Override
+	@Override
+	public List<EventData> logCall(DefaultBlockParameter fromBlock, DefaultBlockParameter toBlock, SolidityEvent eventDefinition, EthAddress address, String... optionalTopics) {
+		ArrayList events = new ArrayList();
+
+		for (long i = 0; i < this.getCurrentBlockNumber(); i++) {
+			BlockInfo block = this.getBlock(i).get();
+			block.receipts.stream()
+				.filter(params -> address.equals(params.receiveAddress))
+				.flatMap(params -> params.events.stream())
+				.filter(eventDefinition::match).forEach(eventData -> {
+
+				// If we have indexed parameters to match check if we matched them all here
+				if (optionalTopics.length > 0) {
+					int matched = 0;
+					for (int j = 0; j < optionalTopics.length; j++) {
+
+						// Check if null / matching, since null can be passed if we don't care about it being matched with multiple
+						// indexed parameters (this is web3j behaviour as well)
+						if (optionalTopics[j] == null || optionalTopics[j].equals(eventData.getIndexedArguments().get(j).withLeading0x())) {
+							matched++;
+						}
+					}
+
+					// If equals to matched the events matched everything and should be added
+					if (optionalTopics.length == matched) {
+						events.add(eventData);
+					}
+
+					// If there are no optional parameters add to return list since eventDefinitions matched
+				} else {
+					events.add(eventData);
+				}
+			});
+		}
+		return events;
+	}
+
+	@Override
     public void register(EthereumEventHandler eventHandler) {
         eventHandler.onReady();
         blockchain.addEthereumListener(new EthJEventListener(eventHandler));
@@ -162,8 +204,17 @@ public class EthereumTest implements EthereumBackend {
         });
     }
 
-    private ECKey getKey(EthAccount account) {
-        return ECKey.fromPrivate(account.getBigIntPrivateKey());
+	@Override
+	public ChainId getChainId() {
+		return ChainId.id(123456);
+	}
+
+	private EthAccount getAccount(CryptoProvider provider) {
+		return ((PropellerCryptoProvider)provider).getAccount();
+	}
+
+    private ECKey getKey(CryptoProvider provider) {
+        return ECKey.fromPrivate(getAccount(provider).getBigIntPrivateKey());
     }
 
     BlockInfo toBlockInfo(Block block) {
