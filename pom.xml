@@ -59,7 +59,7 @@
         <dependency>
             <groupId>org.adridadou</groupId>
             <artifactId>eth-propeller-core</artifactId>
-            <version>0.51</version>
+            <version>0.52</version>
         </dependency>
 
         <dependency>
@@ -71,7 +71,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.26.0</version>
+            <version>3.0.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
