@@ -156,7 +156,7 @@ public class EthereumTest implements EthereumBackend {
 	public List<EventData> logCall(DefaultBlockParameter fromBlock, DefaultBlockParameter toBlock, SolidityEvent eventDefinition, EthAddress address, String... optionalTopics) {
 		ArrayList events = new ArrayList();
 
-		for (long i = 0; i < this.getCurrentBlockNumber(); i++) {
+		for (long i = 0; i <= this.getCurrentBlockNumber(); i++) {
 			BlockInfo block = this.getBlock(i).get();
 			block.receipts.stream()
 				.filter(params -> address.equals(params.receiveAddress))
